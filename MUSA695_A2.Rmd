@@ -18,15 +18,16 @@ editor_options:
 ## Introduction
 
 
-`lehdr` is a very simple yet important R package to city planners and urban spatial analysts. Jamaal Green [cre, aut], Liming Wang [aut], Dillon Mahmoudi [aut], Matthew Rogers [ctb], and Kyle Walker [ctb] developed the package in 
+`lehdr` is a very simple yet useful R package to city planners and urban spatial analysts^[GitHub repoitory of lehdr: https://github.com/jamgreen/lehdr]. Jamaal Green [cre, aut], Liming Wang [aut], Dillon Mahmoudi [aut], Matthew Rogers [ctb], and Kyle Walker [ctb] developed the package to grab [Longitudinal Employer-Household Dynamics (LEHD)](https://lehd.ces.census.gov/) Origin-Destination Employment Statistics (LODES) flat files and return as dataframes in R. The package is still under development, yet some fundamental functions can be used to ease our struggles when downloading and importing LODES dara. In this tutorial, we will explore some functions and their common usage in daily urban data analysis.
+
+**Why LODES data?** The LODES dataset is a valuable resource frequently utilized by various professionals, including transportation and economic development planners, regional economists, disaster managers, etc. It provides detailed information on employment distribution. One important application of this data is for creating regional travel demand models and shaping transportation policies. Additionally, regional economists and economic development planners use this data to assess different workforce policy options and industrial distribution. Moreover, when combined with census data, LODES facilitates the visualization of interactions between various population groups and employment patterns. Therefore, LODES is the primary source of comprehensive geographic employment data in the U.S.
 
 
+**Why the `lehdr` package?** Before the development of this package, to use LODES data in R, we needed to download data (usually in *csv.gz* files) from the U.S. Census [OnTheMap](https://onthemap.ces.census.gov/) web application or the LODES [FTP program inventory](lehd.ces.census.gov/data/lodes/.). Both of these methods are time-consuming and inconvenient for the following data visualization and analysis works in R. As a result, the `lehdr` package is designed to increase the accessibility of LODES data among researchers and analysts working on regional development issues. Now, with the package, we can easily query LODES data into R and aggregate jobs from default Census block to larger Census geographical units!
 
-Begin your tutorial with an introduction to the R package. Provide some background information about the package, its purpose, and why it is useful.
 
-Grab Longitudinal Employer-Household Dynamics (LEHD) Flat Files
+![The U.S. Census OnTheMap web app](Images/Census_OnTheMap.png)
 
-Authors: Jamaal Green [cre, aut] , Liming Wang [aut] , Dillon Mahmoudi [aut] , Matthew Rogers [ctb] , Kyle Walker [ctb]
 
 </br>
 
@@ -68,17 +69,21 @@ library(lehdr)
 
 ```
 
+
+</br>
+
+
 ----------------------------------------------
 
 
 ## Usage & Demonstration
 
-There are two external functions - `grab_lodes()` and `grab_crosswalk()` - and one internal function -`aggregate_lodes_df()` - that supports the user-end functions in the `lehdr` package. In this tutorial, we will focus on the `grad_lodes()` function since the `grab_crosswalk()` function often results in error messages^[I failed to run this function.].
+There are two external functions - `grab_lodes()` and `grab_crosswalk()` - and one internal function -`aggregate_lodes_df()` - that supports the user-end functions in the `lehdr` package. In this tutorial, we will focus on the `grab_lodes()` function since the `grab_crosswalk()` function often results in error messages^[I failed to run this function.].
 
-The `grav_lodes` function is to download LODES origin-destination ("od"), residential association ("rac"), or workplace association ("wac") tables, which is identified by the `lodes_type` parameter. Using the `job_type` parameter, we can choose the job types that we want to grab from the LODES data: "JT00" for all jobs, "JT01" for Primary Jobs, "JT02" for All Private Jobs, "JT03" for Private Primary jobs, "JT04" for All Federal jobs, "JT05" for Federal Primary jobs. The **default** spatial unit of job aggregation (`agg_geo`) is Census block, and other options include "bg" for Census block group, "tract" for Census tract, "county" for county, or "state" for state. More parameters can be found in the package manual document^[lehdr PDF Manual: https://cran.utstat.utoronto.ca/web/packages/lehdr/lehdr.pdf]. 
+The `grab_lodes()` function is to download LODES origin-destination ("od"), residential association ("rac"), or workplace association ("wac") tables, which is identified by the `lodes_type` parameter. Using the `job_type` parameter, we can choose the job types that we want to grab from the LODES data: "JT00" for all jobs, "JT01" for Primary Jobs, "JT02" for All Private Jobs, "JT03" for Private Primary jobs, "JT04" for All Federal jobs, "JT05" for Federal Primary jobs. The **default** spatial unit of job aggregation (`agg_geo`) is Census block, and other options include "bg" for Census block group, "tract" for Census tract, "county" for county, or "state" for state. More parameters can be found in the package manual document^[lehdr PDF Manual: https://cran.utstat.utoronto.ca/web/packages/lehdr/lehdr.pdf]. 
 
 
-### Use `grab_lodes` to grab LODES origin-destination tables
+### Basic: Use `grab_lodes()` to grab LODES origin-destination tables 
 
 For example, we can crab the county-level origin-destination data for Pennsylvania in 2021. 
 In this example, we are interested in only primary jobs and all types of segments of the workforce.
@@ -112,7 +117,7 @@ head(od_PA_county_2021, n=10) %>%
          "# jobs in Trade, Transportation, and Utilities industry sectors" = SI02,
          "# jobs in All Other Services industry sectors" = SI03 )%>% 
   kable(., "html", digits=1, align = "lccrr",
-        caption = "") %>% 
+        caption = "Example rows in the retrieved Origin-Destrination data") %>% 
   kable_styling() %>%
   scroll_box(width = "800px", height = "600px")
 ```
@@ -134,12 +139,13 @@ head(totjobs_PA_county_2021, n=10) %>%
   rename("Total primary jobs" = totjobs,
          "Workplace county geoid" = w_county) %>% 
   kable(., "html", digits=1, align = "lccrr", 
-        format.args = list(big.mark = ","), caption = "Total 10 Pennsylvania counties with most primary jobs, 2021") %>% 
+        format.args = list(big.mark = ","), 
+        caption = "Top 10 Pennsylvania counties with most primary jobs, 2021") %>% 
   kable_styling(position = "center")
 
 ```
 
-To do this workplace job aggregation faster, we can use `grab_lodes()` directly to grab workplace association ("wac") tables. The wac tables also provide us with more detailed job categories, such as industry sectors defined in the NAICS system. The following code is an example of grabing workpace job association table for Pennsylvania counties in 2021, in which `C000` indicates the total number of jobs (primary and others). See more details about fields in the LODES manual^[LODES Public Data Structure: https://lehd.ces.census.gov/data/lodes/LODES7/LODESTechDoc7.5.pdf].
+To do this workplace job aggregation faster, we can use `grab_lodes()` directly to grab workplace association ("wac") tables. The wac tables also provide us with more detailed job categories, such as industry sectors defined in the NAICS system. The following code is an example of grabing workpace job association table for Pennsylvania counties in 2021, in which `C000` indicates the total number of jobs. See more details about fields in the LODES manual^[LODES Public Data Structure: https://lehd.ces.census.gov/data/lodes/LODES7/LODESTechDoc7.5.pdf].
 
 ```{r grab lodes PA wac, warning = FALSE, message = FALSE, include=TRUE}
 
@@ -155,21 +161,20 @@ wac_PA_county_2021 <- grab_lodes(
 
 # show the first 10 rows of wac data
 head(wac_PA_county_2021, n=10) %>% 
-  kable(., "html", digits=1, align = "lccrr",
-        caption = "") %>% 
+  kable(., "html", digits=1, align = "lccrr", format.args = list(big.mark = ","), 
+        caption = "Example rows in the retrieved Workplace Area Characteristics data ") %>% 
   kable_styling() %>%
   scroll_box(width = "800px", height = "600px")
 ```
 
 
 
-### Integrating the LODES data with `sf` objects for visulization
-
-(Authors'next steps: integration of the package with the `sf` and `tigris` packages to allow for easier mapping of LODES data)
+### Integrate the LODES data with `sf` objects for visualization
 
 
-Yet, we don't know what counties are and where these counties are from the LODES tables, in which no familiar place names and geometries are provided. We can add more richness to our LODES data using the `tidycensus` package to attach Census geographies' basic information. Then, `ggplot` is used to visualize the Pennsylvania counties and their total number of primary jobs in 2021.
+Yet, we don't know what counties are and where these counties are from the LODES tables, in which no familiar place names and geometries are provided. We can add more richness to our LODES data using the `tidycensus` package to attach Census geographies' basic information. Then, `ggplot` is used below to visualize the Pennsylvania counties and their total number of primary jobs in 2021.
 
+Note: The authors mentioned in their package release documents that their next steps are the integration of the package with the `sf` and `tigris` packages to allow for easier mapping of LODES data. 
 
 ```{r total jobs PA counties sf, warning = FALSE, message = FALSE, include=TRUE, results=FALSE}
 # get counties and their geometries from 2021 Census data
@@ -220,9 +225,11 @@ totjobs_PA_county_2021_sf %>%
 
 ### Visualize job flows using the LODES OD data
 
-Another question that we can answer using the LODES data is people's commuting pattern.
+Another question that we can answer using the LODES OD data is people's commuting pattern.
 
 **TO DO: add base layer of job distributions, and filter the flows to Philadelphia county (destination)."
+
+
 ```{r pa counties od map, warning = FALSE, message = FALSE, include=TRUE, fig.align='center', fig.width=10, fig.height=8}
 
 # generate centroids of Philadelphia counties
@@ -261,30 +268,79 @@ ggplot(dest_PA_county_2021, aes(oX, oY))+
 
 Note: Not all years are available for each state. To see all options for lodes_type, job_type, and segment and the availability for each state/year, please see the most recent LEHD Technical Document at https://lehd.ces.census.gov/data/lodes/LODES7/. 
 
-```{r grab lodes PA NY wac, warning = FALSE, message = FALSE, include=TRUE}
+In the following table, `C000` and `CE01` are # total jobs and # low-income jobs. To get the share of low-income jobs over all (primary) jobs, we will calculate the ratio of `C000` and `CE01`.
+
+```{r grab lodes PA OH wac, warning = FALSE, message = FALSE, include=TRUE}
 
 # download and load 2015-21 wac data for Pennsylvania and New York states and aggregate
 # to the state level, downloading only primary jobs
-wac_PA_NY_2015_2021 <- grab_lodes(
+wac_PA_OH_2015_2021 <- grab_lodes(
                                 state= c('pa', 'oh'),
                                 year=2015:2019,
                                 lodes_type = "wac",
                                 job_type = "JT01",
                                 agg_geo = "state",
                                )
+# calculate thes share of low-income jobs
+wac_PA_OH_2015_2021 <- wac_PA_OH_2015_2021 %>% 
+  mutate(pct_lowinc = CE01/C000 * 100)
 
 
+# show the wac data for PA and OH
+wac_PA_OH_2015_2021 %>%
+  arrange(desc(state)) %>% 
+  select(year, state, C000, CE01, pct_lowinc) %>%
+  rename("Year" = year,
+         "State" = state,
+         "Total jobs" = C000,
+         "Low-income jobs" = CE01,
+         "Share of low-income job"= pct_lowinc) %>%
+  kable(., "html", digits=1, align = "lccrr",
+        caption = "") %>% 
+  kable_styling() %>%
+  scroll_box(width = "800px", height = "600px")
 
 ```
 
+To better visualize the temporal trends and compare two states, we can plot a line graph using the retrieved wac data.
+
+
+```{r plot lodes PA OH wac, warning = FALSE, message = FALSE, include=TRUE, fig.align='center', fig.width=6, fig.height=6}
+
+# plot 
+ggplot(wac_PA_OH_2015_2021, aes(x = year, y=pct_lowinc, group=state)) +
+  geom_line(size = 1, aes(color=state)) +
+  geom_point(size = 2, aes(color=state)) +
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9")) +
+  scale_y_continuous(breaks = seq(15, 25, 2), limit = c(15, 25)) +
+  labs(y = "Percentage share (%)", x = "Year", 
+       title = "Share of low-income jobs in Pennsylvania and Ohio", 
+       subtitle = "2015-19") + 
+  theme_minimal() +
+  theme(legend.position="top")  
+
+```
+
+</br>
 
 
 ----------------------------------------------
 
 ## Conclusion
 
-Summarize the key points covered in your tutorial.
-Encourage users to explore the package further and provide additional resources if available.
+In this tutorial, we explored the fundamental usage of `lehdr` package to query LODES data from the LEHD FTP program and demonstrated some common tasks we can use the LODES data to accomplish:
+
+- Basic: Use `grab_lodes()` to grab LODES origin-destination tables 
+
+- Integrate the LODES data with `sf` objects for visualization
+
+- Visualize job flows using the LODES OD data
+
+- Retrieve multiple states or years to see trends
+
+
+Please be to tuned for more new functions in the `ledhr` package! Additional resources for using the package can be found in the [package webpage](https://jamgreen.github.io/lehdr/articles/getting_started.html) and the [user manual](https://cran.utstat.utoronto.ca/web/packages/lehdr/lehdr.pdf). 
+
 
 
 
