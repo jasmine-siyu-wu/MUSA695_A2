@@ -18,7 +18,7 @@ editor_options:
 ## Introduction
 
 
-`lehdr` is a very simple yet important R package to city planners and urban spatial analysts. 
+`lehdr` is a very simple yet important R package to city planners and urban spatial analysts. Jamaal Green [cre, aut], Liming Wang [aut], Dillon Mahmoudi [aut], Matthew Rogers [ctb], and Kyle Walker [ctb] developed the package in 
 
 
 
@@ -75,7 +75,7 @@ library(lehdr)
 
 There are two external functions - `grab_lodes()` and `grab_crosswalk()` - and one internal function -`aggregate_lodes_df()` - that supports the user-end functions in the `lehdr` package. In this tutorial, we will focus on the `grad_lodes()` function since the `grab_crosswalk()` function often results in error messages^[I failed to run this function.].
 
-The `grav_lodes` function is to download LODES origin-destination ("od"), residential association ("rac"), or workplace association ("wac") tables, which is identified by the `lodes_type` parameter. Using the `job_type` parameter, we can choose the job types that we want to grab from the LODES data: "JT00" for all jobs, "JT01" for Primary Jobs, "JT02" for All Private Jobs, "JT03" for Private Primary jobs, "JT04" for All Federal jobs, "JT05" for Federal Primary jobs. The default spatial unit of job aggregation (`agg_geo`) is Census block, and other options include "bg" for Census block group, "tract" for Census tract, "county" for county, or "state" for state. More parameters can be found in the package manual document^[lehdr PDF Manual: https://cran.utstat.utoronto.ca/web/packages/lehdr/lehdr.pdf]. 
+The `grav_lodes` function is to download LODES origin-destination ("od"), residential association ("rac"), or workplace association ("wac") tables, which is identified by the `lodes_type` parameter. Using the `job_type` parameter, we can choose the job types that we want to grab from the LODES data: "JT00" for all jobs, "JT01" for Primary Jobs, "JT02" for All Private Jobs, "JT03" for Private Primary jobs, "JT04" for All Federal jobs, "JT05" for Federal Primary jobs. The **default** spatial unit of job aggregation (`agg_geo`) is Census block, and other options include "bg" for Census block group, "tract" for Census tract, "county" for county, or "state" for state. More parameters can be found in the package manual document^[lehdr PDF Manual: https://cran.utstat.utoronto.ca/web/packages/lehdr/lehdr.pdf]. 
 
 
 ### Use `grab_lodes` to grab LODES origin-destination tables
@@ -217,11 +217,12 @@ totjobs_PA_county_2021_sf %>%
 
 ```
 
+
 ### Visualize job flows using the LODES OD data
 
 Another question that we can answer using the LODES data is people's commuting pattern.
 
-
+**TO DO: add base layer of job distributions, and filter the flows to Philadelphia county (destination)."
 ```{r pa counties od map, warning = FALSE, message = FALSE, include=TRUE, fig.align='center', fig.width=10, fig.height=8}
 
 # generate centroids of Philadelphia counties
@@ -251,6 +252,28 @@ ggplot(dest_PA_county_2021, aes(oX, oY))+
   scale_x_continuous("", breaks=NULL) +
   scale_y_continuous("", breaks=NULL) +
   coord_equal()
+
+```
+
+### Retrieve multiple states or years to see trends
+
+`lehdr` can also be used to retrieve multiple states and years at the same time by creating a vector or list for the `state` and/or `year` parameter. For instance, we want to compare the trends in the share of low-income jobs (jobs with earnings $1250 per month or less) from 2015 to 2019 in Pennsylvania and Ohio. We can use parameters to confine the grabbing: `year = 2015:2019`, `state = c('pa', 'oh')`, `agg_geo = "state"`.
+
+Note: Not all years are available for each state. To see all options for lodes_type, job_type, and segment and the availability for each state/year, please see the most recent LEHD Technical Document at https://lehd.ces.census.gov/data/lodes/LODES7/. 
+
+```{r grab lodes PA NY wac, warning = FALSE, message = FALSE, include=TRUE}
+
+# download and load 2015-21 wac data for Pennsylvania and New York states and aggregate
+# to the state level, downloading only primary jobs
+wac_PA_NY_2015_2021 <- grab_lodes(
+                                state= c('pa', 'oh'),
+                                year=2015:2019,
+                                lodes_type = "wac",
+                                job_type = "JT01",
+                                agg_geo = "state",
+                               )
+
+
 
 ```
 
